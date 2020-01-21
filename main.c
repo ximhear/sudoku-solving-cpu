@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 struct Cell {
     u_int16_t value;
@@ -9,7 +10,7 @@ struct Cell {
     u_int16_t candidate;
 };
 
-int backtracking(u_int16_t* orgProblem, struct Cell* orgCells, int index) {
+int backtracking(u_int16_t* orgProblem, struct Cell* orgCells, int index, u_int16_t* result) {
 
     int next = -1;
     for (int i = index; i < 81; i++) {
@@ -19,13 +20,7 @@ int backtracking(u_int16_t* orgProblem, struct Cell* orgCells, int index) {
         }
     }
     if (next == -1) {
-        printf("return 1\n");
-        for (int i = 0; i < 81; i++) {
-            printf("%d, ", orgProblem[i]);
-            if (i % 9 == 8) {
-                printf("\n");
-            }
-        }
+        memcpy(result, orgProblem, sizeof(u_int16_t) * 81);
         return 1;
     }
     struct Cell cells[81];
@@ -35,7 +30,7 @@ int backtracking(u_int16_t* orgProblem, struct Cell* orgCells, int index) {
     for (int shift = 1; shift <= 9; shift++) {
         if (cells[next].candidate &(1 << shift)) {
             if (next == 0) {
-                printf("%d, %d, 0x%x\n", next, shift, cells[next].candidate);
+//                printf("%d, %d, 0x%x\n", next, shift, cells[next].candidate);
             }
             problem[next] = shift;
             cells[next].value = ((u_int16_t)1) << problem[next];
@@ -88,34 +83,35 @@ int backtracking(u_int16_t* orgProblem, struct Cell* orgCells, int index) {
                     break;
                 }
             }
-            if (backtracking(problem, cells, next + 1) == 1) {
+            if (backtracking(problem, cells, next + 1, result) == 1) {
                 return 1;
             }
             memcpy(cells, orgCells, sizeof(struct Cell) * 81);
             memcpy(problem, orgProblem, sizeof(u_int16_t) * 81);
             if (next == 0) {
-                printf("next 0, candidate: 0x%x\n", cells[next].candidate);
-                printf("next 0, shift: %d\n", shift);
+//                printf("next 0, candidate: 0x%x\n", cells[next].candidate);
+//                printf("next 0, shift: %d\n", shift);
             }
         }
     }
-    printf("next: %d, return 0\n", next);
+//    printf("next: %d, return 0\n", next);
     return 0;
 }
 
 int main() {
+    clock_t begin = clock();
     u_int16_t problem[81] = {
-            9, 0, 0,  0, 0, 8,  4, 0, 0,
-            0, 0, 5,  9, 0, 3,  0, 0, 6,
-            4, 0, 0,  0, 0, 0,  0, 0, 0,
+            0, 0, 0,  0, 0, 2,  0, 0, 3,
+            0, 4, 0,  0, 0, 1,  6, 0, 7,
+            0, 0, 1,  0, 0, 0,  0, 0, 4,
 
-            0, 0, 0,  0, 0, 6,  0, 2, 0,
-            0, 0, 0,  0, 1, 9,  0, 0, 7,
-            0, 8, 0,  0, 0, 0,  1, 0, 0,
+            0, 8, 0,  1, 0, 0,  0, 0, 0,
+            4, 3, 0,  0, 0, 0,  0, 6, 2,
+            0, 0, 0,  7, 0, 0,  0, 0, 0,
 
-            6, 0, 8,  0, 0, 1,  0, 0, 9,
-            0, 0, 3,  0, 0, 0,  0, 0, 0,
-            2, 0, 0,  4, 0, 0,  0, 5, 0
+            0, 0, 0,  0, 0, 0,  0, 0, 0,
+            6, 0, 9,  8, 0, 7,  3, 0, 0,
+            0, 0, 0,  3, 0, 4,  7, 0, 0
     };
     struct Cell cells[81];
     for (int i = 0 ; i < 81; i++) {
@@ -173,12 +169,12 @@ int main() {
            break;
         }
     }
-    for (int i = 0; i < 81; i++) {
-        printf("%d, ", problem[i]);
-        if (i % 9 == 8) {
-            printf("\n");
-        }
-    }
+//    for (int i = 0; i < 81; i++) {
+//        printf("%d, ", problem[i]);
+//        if (i % 9 == 8) {
+//            printf("\n");
+//        }
+//    }
 
     int solved = 1;
     for (int i = 0; i < 81; i++) {
@@ -187,12 +183,28 @@ int main() {
             break;
         }
     }
-    printf("solved: %d\n", solved);
+//    printf("solved: %d\n", solved);
     if (solved == 1) {
+        clock_t end = clock();
+        double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+        printf("elapsed: %f\n", time_spent);
         return 0;
     }
-    printf("===== backtracking =====\n");
+//    printf("===== backtracking =====\n");
 
-    backtracking(problem, cells, 0);
+    u_int16_t result[81];
+    int success = backtracking(problem, cells, 0, result);
+    clock_t end = clock();
+    double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+    printf("elapsed: %f\n", time_spent);
+    printf("success : %d\n", success);
+    if (success == 1) {
+        for (int i = 0; i < 81; i++) {
+            printf("%d, ", result[i]);
+            if (i % 9 == 8) {
+                printf("\n");
+            }
+        }
+    }
     return 0;
 }
