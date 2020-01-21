@@ -4,9 +4,6 @@
 #include <time.h>
 
 struct Cell {
-    u_int16_t value;
-    u_int16_t temp;
-    u_int16_t shiftCount;
     u_int16_t candidate;
 };
 
@@ -14,7 +11,7 @@ int backtracking(u_int16_t* orgProblem, struct Cell* orgCells, int index, u_int1
 
     int next = -1;
     for (int i = index; i < 81; i++) {
-        if (orgCells[i].value == 0) {
+        if (orgProblem[i] == 0) {
             next = i;
             break;
         }
@@ -29,12 +26,7 @@ int backtracking(u_int16_t* orgProblem, struct Cell* orgCells, int index, u_int1
     memcpy(problem, orgProblem, sizeof(u_int16_t) * 81);
     for (int shift = 1; shift <= 9; shift++) {
         if (cells[next].candidate &(1 << shift)) {
-            if (next == 0) {
-//                printf("%d, %d, 0x%x\n", next, shift, cells[next].candidate);
-            }
             problem[next] = shift;
-            cells[next].value = ((u_int16_t)1) << problem[next];
-            cells[next].temp = cells[next].value;
             cells[next].candidate = 0;
 
             u_int16_t row_filled[9];
@@ -62,7 +54,7 @@ int backtracking(u_int16_t* orgProblem, struct Cell* orgCells, int index, u_int1
 
                 int found = 0;
                 for (int i = 0 ; i < 81; i++) {
-                    if (cells[i].value == 0) {
+                    if (problem[i] == 0) {
                         cells[i].candidate = 0x03ff ^ (row_filled[i/9] | col_filled[i%9] | sub_filled[3*(i/27)+(i%9)/3]);
 //                        if (cells[i].candidate == 0) {
 //                            printf("next: %d, c==0,  return 0\n", next);
@@ -116,14 +108,8 @@ int main() {
     struct Cell cells[81];
     for (int i = 0 ; i < 81; i++) {
         if (problem[i] == 0) {
-            cells[i].value = 0;
-            cells[i].temp = 0;
-            cells[i].shiftCount = 0;
         }
         else {
-            cells[i].value = ((u_int16_t)1) << problem[i];
-            cells[i].temp = cells[i].value;
-            cells[i].shiftCount = 0;
             cells[i].candidate = 0;
         }
     }
@@ -152,13 +138,11 @@ int main() {
 
         int found = 0;
         for (int i = 0 ; i < 81; i++) {
-            if (cells[i].value == 0) {
+            if (problem[i] == 0) {
                 cells[i].candidate = 0x03ff ^ (row_filled[i/9] | col_filled[i%9] | sub_filled[3*(i/27)+(i%9)/3]);
                 for (int j = 1; j <= 9; j++) {
                     if (cells[i].candidate == (1<<j)) {
                         problem[i] = j;
-                        cells[i].value = ((u_int16_t)1) << problem[i];
-                        cells[i].temp = cells[i].value;
                         found++;
                         break;
                     }
